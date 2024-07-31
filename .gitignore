@@ -1,0 +1,78 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+# dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Media files
+/media/
+/static/
+media_cdn/
+static_cdn/
+
+# Ignore .env for environment variables
+.env
+
+# Node modules and package lock files (uncomment if you prefer not to track the lock file)
+node_modules/
+# package-lock.json
+# yarn.lock
+
+# Compiled static assets
+# /static/
+/media/
+
+# Logs
+*.log
+
+# Local settings
+local_settings.py
+
+# Python virtual environment
+.venv
+env/
+
+# IDE specific settings
+.idea/
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*.swo

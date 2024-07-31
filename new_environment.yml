@@ -1,0 +1,21 @@
+name: multiplatform_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8 
+  - django
+  - pandas
+  - numpy
+  - scipy
+  - gdal
+  - fiona
+  - geopandas
+  - matplotlib
+  - seaborn
+  - pip:
+    - django-cors-headers
+    - django-environ
+    - django-redis
+    - geoserver-rest
+    - xmltodict
