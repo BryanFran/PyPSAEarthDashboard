@@ -47,6 +47,7 @@ node_modules/
 
 # Compiled static assets
 geojson_files/
+json_files/
 /media/
 
 # Logs
