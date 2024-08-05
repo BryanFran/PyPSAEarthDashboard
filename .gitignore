@@ -35,7 +35,6 @@ db.sqlite3-journal
 
 # Media files
 /media/
-/static/
 media_cdn/
 static_cdn/
 
