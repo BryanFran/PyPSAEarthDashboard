@@ -27,9 +27,8 @@ import {
   loadOptimalStorageCapacityData,
   loadLineData,
 } from "./dataLoaders.js";
-import { createScenarioControls } from "./scenarios.js";
+import { createScenarioControls, toggleSync, updateEconomicCharts } from './scenarios.js';
 import { createOverlays } from "./overlays.js";
-import { toggleSync } from "./scenarios.js";
 
 function onCountrySelected(country) {
   console.log(`Country selected: ${country}`);
@@ -38,6 +37,8 @@ function onCountrySelected(country) {
   loadNominalStorageCapacityData(country);
   loadOptimalStorageCapacityData(country);
   loadLineData(country);
+  updateEconomicCharts('map1');
+  updateEconomicCharts('map2');
 }
 
 function setupLayerToggleListeners(layers) {
@@ -121,6 +122,9 @@ window.onload = async () => {
 
     setTimeout(() => {
       createScenarioControls();
+      setupScenarioListeners();
+      updateEconomicCharts('chart1');
+      updateEconomicCharts('chart2');
     }, 0);
 
     adjustLegendPosition();
@@ -133,3 +137,16 @@ window.onload = async () => {
     console.error("Error initializing the application:", error);
   }
 };
+
+function setupScenarioListeners() {
+  ['map1', 'map2'].forEach(mapId => {
+    const scenarioSelect = document.getElementById(`scenarioSelector-${mapId}`);
+    if (scenarioSelect) {
+      scenarioSelect.addEventListener('change', function() {
+        const selectedScenario = this.value;
+        updateMap(mapId);
+        updateEconomicCharts(`chart${mapId.slice(-1)}`);
+      });
+    }
+  });
+}

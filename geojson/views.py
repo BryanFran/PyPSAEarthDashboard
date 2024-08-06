@@ -8,6 +8,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
+from django.db import connection
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,7 +19,7 @@ from .models import (
     OptimalGeneratorCapacity, OptimalGeneratorCapacityCo, OptimalGeneratorCapacityUS,
     NominalStorageCapacity, NominalStorageCapacityCo, NominalStorageCapacityUS,
     OptimalStorageCapacity, OptimalStorageCapacityCo, OptimalStorageCapacityUS,
-    Lines, LinesCo, LinesUS
+    Lines, LinesCo, LinesUS, EconomicData
 )
 
 def index(request):
@@ -100,7 +102,7 @@ def line_data_json(request, country):
             data = list(LinesUS.objects.all().values())
         elif country.lower() == 'colombia':
             data = list(LinesCo.objects.all().values())
-        else:  # Asumimos que es Nigeria
+        else: 
             data = list(Lines.objects.all().values())
 
         for item in data:
@@ -113,4 +115,27 @@ def line_data_json(request, country):
         return JsonResponse(data, safe=False)
     except Exception as e:
         logger.error(f"Error in line_data_json for {country}: {str(e)}", exc_info=True)
+        return JsonResponse({"error": str(e)}, status=500)
+    
+
+@csrf_exempt
+def economic_data_json(request, country, scenario):
+    if country.lower() != 'united states':
+        return JsonResponse({"error": "Data only available for United States"}, status=400)
+    
+    try:
+        table_name = f'json_statistics_{scenario}_US'
+        print(f"Accessing table: {table_name}")  
+        
+        with connection.cursor() as cursor:
+            cursor.execute(f"""
+                SELECT *
+                FROM "{table_name}"
+            """)
+            columns = [col[0] for col in cursor.description]
+            data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+        return JsonResponse(data, safe=False)
+    except Exception as e:
+        print(f"Error in economic_data_json: {str(e)}")  
         return JsonResponse({"error": str(e)}, status=500)

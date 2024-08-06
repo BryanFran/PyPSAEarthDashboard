@@ -290,15 +290,275 @@ export function displayNoDataMessage(chartId) {
   const canvas = document.getElementById(chartId);
   const ctx = canvas.getContext("2d");
 
-  // Limpiar el canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Configurar el estilo del texto
   ctx.fillStyle = "#999";
   ctx.font = "20px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-
-  // Dibujar el mensaje
   ctx.fillText("No data available", canvas.width / 2, canvas.height / 2);
+}
+
+export function createScenarioCapexOpexChart(data, chartId) {
+  const canvas = document.getElementById(chartId);
+  if (!canvas) {
+    console.error(`Canvas element with id ${chartId} not found`);
+    return;
+  }
+  const existingChart = Chart.getChart(chartId);
+  if (existingChart) {
+    existingChart.destroy();
+  }
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    console.error(`Unable to get 2D context for canvas with id ${chartId}`);
+    return;
+  }
+
+  const chartData = {
+    labels: data.map((_, index) => `Generator ${index + 1}`),
+    datasets: [
+      {
+        label: "CAPEX",
+        data: data.map((item) => item["Capital Expenditure"]),
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+      },
+      {
+        label: "OPEX",
+        data: data.map((item) => item["Operational Expenditure"]),
+        backgroundColor: "rgba(255, 99, 132, 0.6)",
+      },
+    ],
+  };
+
+  new Chart(ctx, {
+    type: "bar",
+    data: chartData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: "CAPEX vs OPEX per Generator",
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              let label = context.dataset.label || "";
+              if (label) {
+                label += ": ";
+              }
+              if (context.parsed.y !== null) {
+                label += new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                }).format(context.parsed.y);
+              }
+              return label;
+            },
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Cost ($)",
+          },
+          ticks: {
+            callback: function (value, index, values) {
+              return new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: "USD",
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              }).format(value);
+            },
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Generator",
+          },
+        },
+      },
+    },
+  });
+}
+
+export function createScenarioCostDistributionChart(data, chartId) {
+  const canvas = document.getElementById(chartId);
+  if (!canvas) {
+    console.error(`Canvas element with id ${chartId} not found`);
+    return;
+  }
+
+  const existingChart = Chart.getChart(chartId);
+  if (existingChart) {
+    existingChart.destroy();
+  }
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    console.error(`Unable to get 2D context for canvas with id ${chartId}`);
+    return;
+  }
+
+  const totalCosts = data.map((item, index) => ({
+    label: `Generator ${index + 1}`,
+    value: item["Capital Expenditure"] + item["Operational Expenditure"],
+  }));
+
+  new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: totalCosts.map((item) => item.label),
+      datasets: [
+        {
+          data: totalCosts.map((item) => item.value),
+          backgroundColor: totalCosts.map(
+            (_, index) =>
+              `hsl(${((index * 360) / totalCosts.length) % 360}, 70%, 60%)`
+          ),
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "right",
+          labels: {
+            boxWidth: 15,
+            font: {
+              size: 10,
+            },
+          },
+        },
+        title: {
+          display: true,
+          text: "Total Cost Distribution per Generator",
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              let label = context.label || "";
+              if (label) {
+                label += ": ";
+              }
+              if (context.parsed !== null) {
+                label += new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                }).format(context.parsed);
+              }
+              return label;
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export function createScenarioCapacityComparisonChart(data, chartId) {
+  const canvas = document.getElementById(chartId);
+  if (!canvas) {
+    console.error(`Canvas element with id ${chartId} not found`);
+    return;
+  }
+
+  const existingChart = Chart.getChart(chartId);
+  if (existingChart) {
+    existingChart.destroy();
+  }
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    console.error(`Unable to get 2D context for canvas with id ${chartId}`);
+    return;
+  }
+
+  const chartData = {
+    labels: data.map((_, index) => `Generator ${index + 1}`),
+    datasets: [
+      {
+        label: "Installed Capacity",
+        data: data.map((item) => item["Installed Capacity"]),
+        backgroundColor: "rgba(54, 162, 235, 0.6)",
+      },
+      {
+        label: "Optimal Capacity",
+        data: data.map((item) => item["Optimal Capacity"]),
+        backgroundColor: "rgba(255, 206, 86, 0.6)",
+      },
+    ],
+  };
+
+  new Chart(ctx, {
+    type: "bar",
+    data: chartData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: "Installed vs Optimal Capacity per Generator",
+        },
+        legend: {
+          position: "top",
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              let label = context.dataset.label || "";
+              if (label) {
+                label += ": ";
+              }
+              if (context.parsed.y !== null) {
+                label += new Intl.NumberFormat("en-US", {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 2,
+                }).format(context.parsed.y);
+              }
+              return label;
+            },
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Capacity",
+          },
+          ticks: {
+            callback: function (value, index, values) {
+              return new Intl.NumberFormat("en-US", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+              }).format(value);
+            },
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Generator",
+          },
+        },
+      },
+    },
+  });
 }

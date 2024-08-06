@@ -7,7 +7,6 @@ import glob
 import zipfile
 from sqlalchemy import *
 from geo.Geoserver import Geoserver
-# from pg.pg import Pg
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.geos import GEOSGeometry
 from django.db.models import JSONField
@@ -406,3 +405,25 @@ class CombinedGeneratorData(models.Model):
     class Meta:
         managed = False
         db_table = 'combined_generator_data_co'
+        
+class EconomicData(models.Model):
+    index = models.CharField(max_length=100, primary_key=True)
+    capacity_factor = models.FloatField()
+    capital_expenditure = models.FloatField()
+    curtailment = models.FloatField()
+    dispatch = models.FloatField()
+    installed_capacity = models.FloatField()
+    market_value = models.FloatField()
+    operational_expenditure = models.FloatField()
+    optimal_capacity = models.FloatField()
+    revenue = models.FloatField()
+    supply = models.FloatField()
+    withdrawal = models.FloatField()
+    scenario = models.CharField(max_length=10) 
+
+    class Meta:
+        managed = False
+        db_table = 'json_statistics_%(scenario)s_US'
+
+    def __str__(self):
+        return f"{self.index} - {self.scenario}"

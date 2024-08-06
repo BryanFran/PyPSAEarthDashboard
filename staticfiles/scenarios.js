@@ -3,8 +3,12 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { loadScenarioData } from "./init.js";
-import { adjustLegendPosition } from "./layerVisibility.js";
+import {
+  createScenarioCapexOpexChart,
+  createScenarioCostDistributionChart,
+  createScenarioCapacityComparisonChart,
+} from "./charts.js";
+
 var mapInstances = {};
 let isSyncEnabled = true;
 
@@ -36,17 +40,20 @@ class SyncControl extends ol.control.Control {
 }
 
 export function createScenarioControls() {
-  const maps = [
-    { mapId: "map1", carrier: "solar", variable: "cf", scenario: "2021" },
-    { mapId: "map2", carrier: "solar", variable: "cf", scenario: "2050" },
+  const scenarios = [
+    { mapId: "map1", chartId: "chart1", carrier: "solar", variable: "cf", scenario: "2021" },
+    { mapId: "map2", chartId: "chart2", carrier: "solar", variable: "cf", scenario: "2050" },
   ];
 
-  maps.forEach(({ mapId, carrier, variable, scenario }) => {
+  scenarios.forEach(({ mapId, chartId, carrier, variable, scenario }) => {
     const mapElement = document.getElementById(mapId);
-    if (!mapElement) {
-      console.error(`Map element with id ${mapId} not found`);
+    const chartElement = document.getElementById(chartId);
+    if (!mapElement || !chartElement) {
+      console.error(`Element with id ${mapId} or ${chartId} not found`);
       return;
     }
+
+    // Create map controls
     const selectContainer = document.createElement("div");
     selectContainer.className = "map-select-container";
 
@@ -90,20 +97,45 @@ export function createScenarioControls() {
     selectContainer.appendChild(legendDiv);
     mapElement.appendChild(selectContainer);
 
-    [carrierSelect, variableSelect, scenarioSelect].forEach((select) => {
-      select.addEventListener("change", () => updateMap(mapId));
+    // Create chart containers
+    const economicChartsContainer = document.createElement("div");
+    economicChartsContainer.className = "economic-charts-container";
+
+    ['capex-opex', 'cost-distribution', 'capacity-comparison'].forEach(chartType => {
+      const chartCanvas = document.createElement("canvas");
+      chartCanvas.id = `${chartType}-chart-${chartId}`;
+      chartCanvas.style.width = '100%';
+      chartCanvas.style.height = '250px'; 
+      economicChartsContainer.appendChild(chartCanvas);
     });
 
+    chartElement.appendChild(economicChartsContainer);
+
+    // Set up event listeners
+    [carrierSelect, variableSelect, scenarioSelect].forEach((select) => {
+      select.addEventListener("change", () => {
+        updateMap(mapId);
+        updateEconomicCharts(chartId);
+      });
+    });
+
+    // Set initial values
     carrierSelect.value = carrier;
     variableSelect.value = variable;
     scenarioSelect.value = scenario;
+
+    // Initialize scenario map
     initializeScenarioMap(mapId, carrier, variable, scenario);
+
+    // Initialize economic charts
+    updateEconomicCharts(chartId);
   });
 
-  const firstMap = mapInstances[maps[0].mapId];
+  // Synchronize initial view of maps
+  const firstMap = mapInstances[scenarios[0].mapId];
   if (firstMap) {
     Object.keys(mapInstances).forEach((mapId) => {
-      if (mapId !== maps[0].mapId) {
+      if (mapId !== scenarios[0].mapId) {
         mapInstances[mapId].getView().setCenter(firstMap.getView().getCenter());
         mapInstances[mapId].getView().setZoom(firstMap.getView().getZoom());
       }
@@ -190,9 +222,7 @@ export async function initializeScenarioMap(
       center: ol.proj.fromLonLat([longitude, latitude]),
       zoom: 4,
     }),
-    controls: ol.control.defaults().extend([
-      new SyncControl({}),
-    ]),
+    controls: ol.control.defaults().extend([new SyncControl({})]),
     interactions: ol.interaction.defaults({ mouseWheelZoom: false }).extend([
       new ol.interaction.MouseWheelZoom({
         constrainResolution: true,
@@ -321,7 +351,6 @@ function createLegend(mapId, variable, carrier, features) {
   for (let i = 0; i < steps; i++) {
     const value = minValue + i * stepSize;
     const color = chromaScale(value).hex();
-    // Ajusta el número de decimales basado en el rango de valores
     const decimals = maxValue - minValue < 0.01 ? 4 : 3;
 
     legendHTML += `
@@ -440,4 +469,141 @@ export function toggleSync() {
 
 function areCoordinatesEqual(coord1, coord2) {
   return coord1[0] === coord2[0] && coord1[1] === coord2[1];
+}
+
+export async function loadEconomicData(country, scenario) {
+  const url = `/api/economic-data/${country}/${scenario}/`;
+  console.log(`Fetching economic data from: ${url}`);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log(`Received economic data:`, data);
+    if (data && data.length > 0) {
+      console.log("Sample data structure:", JSON.stringify(data[0], null, 2));
+    }
+    return data;
+  } catch (error) {
+    console.error("Error loading economic data:", error);
+    return null;
+  }
+}
+
+export function createCapexOpexChart(data, chartId) {
+  if (!data || data.length === 0) {
+    console.warn(`No data available for CAPEX vs OPEX chart (${chartId})`);
+    return;
+  }
+
+  const chartData = {
+    labels: data.map((item, index) => `Generator ${index + 1}`),
+    datasets: [
+      {
+        label: "CAPEX",
+        data: data.map((item) => item["Capital Expenditure"]),
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+      },
+      {
+        label: "OPEX",
+        data: data.map((item) => item["Operational Expenditure"]),
+        backgroundColor: "rgba(255, 99, 132, 0.6)",
+      },
+    ],
+  };
+
+  try {
+    initChart(
+      chartId,
+      chartData,
+      "bar",
+      "CAPEX vs OPEX por Generador",
+      "Costo ($)",
+      "Generador"
+    );
+  } catch (error) {
+    console.error(`Error creating CAPEX vs OPEX chart (${chartId}):`, error);
+  }
+}
+
+export function createCostDistributionChart(data, chartId) {
+  const totalCosts = data.map((item, index) => ({
+    label: `Generator ${index + 1}`,
+    value: item["Capital Expenditure"] + item["Operational Expenditure"],
+  }));
+
+  createPieChart(chartId, totalCosts, "Distribución de Costos Totales");
+}
+
+export function createCapacityComparisonChart(data, chartId) {
+  const chartData = {
+    labels: data.map((item, index) => `Generator ${index + 1}`),
+    datasets: [
+      {
+        label: "Installed Capacity",
+        data: data.map((item) => item["Installed Capacity"]),
+        backgroundColor: "rgba(54, 162, 235, 0.6)",
+      },
+      {
+        label: "Optimal Capacity",
+        data: data.map((item) => item["Optimal Capacity"]),
+        backgroundColor: "rgba(255, 206, 86, 0.6)",
+      },
+    ],
+  };
+
+  initChart(
+    chartId,
+    chartData,
+    "bar",
+    "Installed vs Optimal Capacity",
+    "Capacity",
+    "Generator"
+  );
+}
+
+export async function updateEconomicCharts(chartId) {
+  console.log(`Updating economic charts for ${chartId}`);
+  const mapId = chartId.replace('chart', 'map');
+  const scenario = document.getElementById(`scenarioSelector-${mapId}`).value;
+  console.log(`Scenario selected: ${scenario}`);
+  
+  try {
+    const economicData = await loadEconomicData('United States', scenario);
+    console.log('Economic data loaded:', economicData);
+    
+    if (economicData && economicData.length > 0) {
+      try {
+        console.log(`Creating CAPEX vs OPEX chart for ${chartId}`);
+        createScenarioCapexOpexChart(economicData, `capex-opex-chart-${chartId}`);
+        console.log(`Creating Cost Distribution chart for ${chartId}`);
+        createScenarioCostDistributionChart(economicData, `cost-distribution-chart-${chartId}`);
+        console.log(`Creating Capacity Comparison chart for ${chartId}`);
+        createScenarioCapacityComparisonChart(economicData, `capacity-comparison-chart-${chartId}`);
+      } catch (error) {
+        console.error(`Error creating charts for ${chartId}:`, error);
+      }
+    } else {
+      console.warn(`No economic data available for scenario ${scenario}`);
+      ['capex-opex', 'cost-distribution', 'capacity-comparison'].forEach(chartType => {
+        const chartElement = document.getElementById(`${chartType}-chart-${chartId}`);
+        if (chartElement) {
+          chartElement.innerHTML = 'No data available';
+        } else {
+          console.error(`Chart element ${chartType}-chart-${chartId} not found`);
+        }
+      });
+    }
+  } catch (error) {
+    console.error(`Error updating economic charts for scenario ${scenario}:`, error);
+    ['capex-opex', 'cost-distribution', 'capacity-comparison'].forEach(chartType => {
+      const chartElement = document.getElementById(`${chartType}-chart-${chartId}`);
+      if (chartElement) {
+        chartElement.innerHTML = 'Error loading data';
+      } else {
+        console.error(`Chart element ${chartType}-chart-${chartId} not found`);
+      }
+    });
+  }
 }

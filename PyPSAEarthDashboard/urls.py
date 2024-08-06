@@ -22,7 +22,7 @@ from django.contrib import admin
 from django.urls import path
 from geojson.views import (
     index, nominal_generator_capacity_json, optimal_generator_capacity_json,
-    nominal_storage_capacity_json, optimal_storage_capacity_json, line_data_json
+    nominal_storage_capacity_json, optimal_storage_capacity_json, line_data_json, economic_data_json
 )
 
 urlpatterns = [
@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/nominal-storage-capacity/<str:country>/', nominal_storage_capacity_json, name='nominal_storage_capacity_json'),
     path('api/optimal-generator-capacity/<str:country>/', optimal_generator_capacity_json, name='optimal_generator_capacity_json'),
     path('api/nominal-generator-capacity/<str:country>/', nominal_generator_capacity_json, name='nominal_generator_capacity_json'),
+    path('api/economic-data/<str:country>/<str:scenario>/', economic_data_json, name='economic_data_json'),
 ]
 
 
