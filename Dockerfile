@@ -23,5 +23,5 @@ RUN python manage.py makemigrations
 RUN python manage.py migrate
 RUN python manage.py collectstatic --noinput --clear
 
-# ENTRYPOINT [ "python","manage.py","runserver", "0.0.0.0:8000" ]
-ENTRYPOINT [ "gunicorn","PyPSAEarthDashboard.wsgi:application","--bind","0.0.0.0:8000" ]  
+# ENTRYPOINT [ "python","manage.py","runserver", "0.0.0.0:7000" ]
+ENTRYPOINT [ "gunicorn","PyPSAEarthDashboard.wsgi:application","--bind","0.0.0.0:7000" ]  

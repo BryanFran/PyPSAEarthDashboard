@@ -5,7 +5,7 @@ services:
   nginx:
     build: ./nginx
     ports:
-      - 8000:80
+      - 7000:80
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/mediafiles
@@ -15,12 +15,12 @@ services:
  
   energy-dashboard:
     build: ./
-    entrypoint : "gunicorn PyPSAEarthDashboard.wsgi:application --bind 0.0.0.0:8000"
+    entrypoint : "gunicorn PyPSAEarthDashboard.wsgi:application --bind 0.0.0.0:7000"
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/mediafiles
     expose: 
-      - 8000
+      - 7000
     restart: always
 
 volumes:
