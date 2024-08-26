@@ -1,0 +1,38 @@
+version: "3"
+
+services:
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 7000:80
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/mediafiles
+    depends_on:
+      - energy-dashboard
+    restart: always
+ 
+  energy-dashboard:
+    build: ./
+    entrypoint : "gunicorn PyPSAEarthDashboard.wsgi:application --bind 0.0.0.0:7000"
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/mediafiles
+    expose: 
+      - 7000
+    restart: always
+
+volumes:
+  static_volume:
+  media_volume:
+
+
+# sudo docker run -it -p8080:8080 \
+#   --mount type=bind,src=/home/akshat/data_dir,target=/opt/geoserver_data \
+#   --env INSTALL_EXTENSIONS=true \
+#   --env CORS_ENABLED=true \ 
+#   --env STABLE_EXTENSIONS="gdal,charts,css" \
+#   --env COMMUNITY_EXTENSIONS="backup-restore" \
+#   docker.osgeo.org/geoserver:2.26.x
+
