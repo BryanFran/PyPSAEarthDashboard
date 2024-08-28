@@ -13,10 +13,10 @@ import {
 
 export function initializeDataLoading() {
   document.addEventListener("DOMContentLoaded", function () {
-      loadNominalGeneratorCapacityData();
-      loadOptimalGeneratorCapacityData();
-      loadNominalStorageCapacityData();
-      loadOptimalStorageCapacityData();
-      loadLineData();
+    loadNominalGeneratorCapacityData();
+    loadOptimalGeneratorCapacityData();
+    loadNominalStorageCapacityData();
+    loadOptimalStorageCapacityData();
+    loadLineData();
   });
 }

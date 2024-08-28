@@ -27,11 +27,13 @@ import {
   loadOptimalStorageCapacityData,
   loadLineData,
 } from "./dataLoaders.js";
-import { createScenarioControls, toggleSync, updateEconomicCharts } from './scenarios.js';
+import { createScenarioControls, toggleSync, updateEconomicCharts, updateMap } from './scenarios.js';
 import { createOverlays } from "./overlays.js";
+import { initializeDataLoading } from './dataInitialization.js';
 
 function onCountrySelected(country) {
   console.log(`Country selected: ${country}`);
+  setCurrentCountry(country);
   loadNominalGeneratorCapacityData(country);
   loadOptimalGeneratorCapacityData(country);
   loadNominalStorageCapacityData(country);
@@ -62,7 +64,7 @@ window.onload = async () => {
 
     const defaultCountry = "United States";
     setCurrentCountry(defaultCountry);
-
+    console.log(`Default country set to: ${defaultCountry}`);
     let layers = loadLayers(map, defaultCountry);
 
     addDownloadEventListeners();
@@ -103,6 +105,8 @@ window.onload = async () => {
     loadNominalStorageCapacityData(defaultCountry);
     loadOptimalStorageCapacityData(defaultCountry);
     loadLineData(defaultCountry);
+
+    initializeDataLoading();
 
     document.addEventListener("DOMContentLoaded", (event) => {
       addPassiveEventListeners();

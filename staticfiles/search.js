@@ -108,14 +108,12 @@ async function performSearch(searchQuery, map, onCountrySelected) {
       zoom: zoomLevel,
     });
 
+    console.log(`Search performed, setting country to: ${country}`);
     setCurrentCountry(country);
     clearLayers(map);
     const newLayers = loadLayers(map, country);
     updateLayerToggles(country, newLayers);
     addMapEventHandlers(map, newLayers.buses, newLayers.lines);
     onCountrySelected(country);
-    setTimeout(() => {
-      addDownloadEventListeners();
-    }, 100);
   }
 }

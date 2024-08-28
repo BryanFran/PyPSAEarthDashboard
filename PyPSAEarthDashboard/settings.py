@@ -114,6 +114,7 @@ DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
 GEOSERVER_URL = env('GEOSERVER_URL')
 GEOSERVER_USER = env('GEOSERVER_USER')
 GEOSERVER_PASS = env('GEOSERVER_PASS')
+GEOSERVER_WORKSPACE = env('GEOSERVER_WORKSPACE')
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
