@@ -47,11 +47,11 @@ SECRET_KEY = env('SECRET_KEY')
 # DEBUG = True
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = []
 
 # Application definition
 
-# GDAL_LIBRARY_PATH = r'C:\Users\ramir\miniconda3\Library\bin\gdal.dll'
+GDAL_LIBRARY_PATH = r'C:\Users\ramir\miniconda3\Library\bin\gdal.dll'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -76,11 +76,10 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://127.0.0.1:8000",
-#     "http://localhost:8080",
-# ]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8080",
+]
 
 ROOT_URLCONF = 'PyPSAEarthDashboard.urls'
 
